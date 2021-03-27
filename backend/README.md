@@ -83,3 +83,13 @@ There are `@TODO` comments throughout the `./backend/src`. We recommend tackling
 
 1. `./src/auth/auth.py`
 2. `./src/api.py`
+
+
+## Testing
+To run the tests, run
+```
+dropdb capstone_test
+createdb capstone_test
+psql capstone_test < capstone.psql
+python test_capstone.py
+```

@@ -1,211 +1,215 @@
-import os
-from flask import Flask, request, jsonify, abort
-from sqlalchemy import exc
-import json
-from flask_cors import CORS
+# import os
+# from flask import Flask, request, jsonify, abort
+# from sqlalchemy import exc
+# import json
+# from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db, Drink
-from .auth.auth import AuthError, requires_auth
+# from .database.models import db_drop_and_create_all, setup_db, Movie, Actor
+# from .auth.auth import AuthError, requires_auth
 
-app = Flask(__name__)
-setup_db(app)
-CORS(app)
+# def create_app(test_config=None):
+#     app = Flask(__name__)
+#     setup_db(app)
+#     CORS(app)
 
-'''
-@TODO uncomment the following line to initialize the datbase
-!! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
-!! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-'''
-# db_drop_and_create_all()
+#     '''
+#     @TODO uncomment the following line to initialize the datbase
+#     !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
+#     !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
+#     '''
+#     # db_drop_and_create_all()
 
-## ROUTES
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
-@app.route('/drinks')
-def retrieve_drinks():
-    selection = Drink.query.order_by(Drink.id).all()
+#     ## ROUTES
+#     @app.route('/movies')
+#     @requires_auth('get:movies')
+#     def retrieve_movies(payload):
+#         selection = Movie.query.order_by(Movie.id).all()
 
-    if len(selection) == 0:
-        abort(404)
+#         if len(selection) == 0:
+#             abort(404)
 
-    drinks = [drink.short() for drink in selection]
-    
-    return jsonify({
-        'success': True,
-        'drinks': drinks,
-    })
+#         movies = [movie.long() for movie in selection]
+        
+#         return jsonify({
+#             'success': True,
+#             'movies': movies,
+#         })
 
-'''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
-@app.route('/drinks-detail')
-@requires_auth('get:drinks-detail')
-def retrieve_drinks_detail(payload):
-    selection = Drink.query.order_by(Drink.id).all()
+#     @app.route('/actors')
+#     @requires_auth('get:actors')
+#     def retrieve_actors(payload):
+#         selection = Actor.query.order_by(Actor.id).all()
 
-    if len(selection) == 0:
-        abort(404)
+#         if len(selection) == 0:
+#             abort(404)
 
-    drinks = [drink.long() for drink in selection]
-    
-    return jsonify({
-        'success': True,
-        'drinks': drinks,
-    })
+#         actors = [actor.long() for actor in selection]
+        
+#         return jsonify({
+#             'success': True,
+#             'actors': actors,
+#         })
 
-'''
-@TODO implement endpoint
-    POST /drinks
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
-'''
-@app.route('/drinks', methods=['POST'])
-@requires_auth('post:drinks')
-def create_drink(payload):
-    body = request.get_json()
+#     @app.route('/movies', methods=['POST'])
+#     @requires_auth('create:movie')
+#     def create_movie(payload):
+#         body = request.get_json()
 
-    new_title = body.get('title', None)
-    new_recipe = body.get('recipe', None)
+#         new_title = body.get('title', None)
+#         new_year_released = body.get('year_released', None)
 
-    if (not new_title) or (not new_recipe):
-        abort(400)
+#         if (not new_title) or (not new_year_released):
+#             abort(400)
 
-    new_drink = Drink(title=new_title, recipe=json.dumps(new_recipe))
-    new_drink.insert()
+#         new_movie = Movie(title=new_title, year_released=new_year_released)
+#         new_movie.insert()
 
-    drink_list = Drink.query.filter(Drink.title == new_title).all()
-    drink = [d.long() for d in drink_list]
+#         movie_list = Movie.query.filter(Movie.title == new_title).all()
+#         movie = [m.long() for m in movie_list]
 
-    return jsonify({
-        'success': True,
-        'drinks': drink
-    })
-    
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
-@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
-@requires_auth('patch:drinks')
-def edit_drink(payload, drink_id):
-    body = request.get_json()
+#         return jsonify({
+#             'success': True,
+#             'movies': movie
+#         })
 
-    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
-    if drink is None:
-        abort(404)
+#     @app.route('/actors', methods=['POST'])
+#     @requires_auth('create:actor')
+#     def create_actor(payload):
+#         body = request.get_json()
 
-    if 'title' in body:
-        drink.title = body.get('title')
+#         new_name = body.get('name', None)
+#         new_age = body.get('age', None)
+#         new_gender = body.get('gender', None)
 
-    if 'recipe' in body:
-        drink.recipe = json.dumps(body.get('recipe'))
+#         if (not new_name) or (not new_age) or (not new_gender):
+#             abort(400)
 
-    drink.update()
+#         new_actor = Actor(name=new_name, age=new_age, gender=new_gender)
+#         new_actor.insert()
 
-    drink_list = Drink.query.filter(Drink.id == drink_id).all()
-    drink = [d.long() for d in drink_list]
+#         actor_list = Actor.query.filter(Actor.name == new_name).all()
+#         actor = [a.long() for a in actor_list]
 
-    return jsonify({
-        'success': True,
-        'drinks': drink
-    })
-      
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
-@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
-@requires_auth('delete:drinks')
-def delete_drink(payload, drink_id):
-    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+#         return jsonify({
+#             'success': True,
+#             'actors': actor
+#         })
 
-    if drink is None:
-        abort(404)
+#     @app.route('/movies/<int:movie_id>', methods=['PATCH'])
+#     @requires_auth('edit:movies')
+#     def edit_movie(payload, movie_id):
+#         body = request.get_json()
 
-    drink.delete()
+#         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+#         if movie is None:
+#             abort(404)
 
-    return jsonify({
-        'success': True,
-        'delete': drink_id,
-    })
+#         if 'title' in body:
+#             movie.title = body.get('title')
 
-## Error Handling
-'''
-Example error handling for unprocessable entity
-'''
-@app.errorhandler(422)
-def unprocessable(error):
-    return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+#         if 'year_released' in body:
+#             movie.year_released = body.get('year_released')
 
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
+#         movie.update()
 
-'''
-@app.errorhandler(404)
-def resource_not_found(error):
-    return jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
+#         movie_list = Movie.query.filter(Movie.id == movie_id).all()
+#         movie = [m.long() for m in movie_list]
 
-'''
-@TODO implement error handler for 400
-    error handler should conform to general task above 
-'''
-@app.errorhandler(400)
-def not_found(error):
-    return jsonify({
-                    "success": False, 
-                    "error": 400,
-                    "message": "bad request"
-                    }), 400
+#         return jsonify({
+#             'success': True,
+#             'movies': movie
+#         })
 
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above 
-'''
-@app.errorhandler(AuthError)
-def unauthorized(error):
-    return jsonify({
-                    "success": False, 
-                    "error": 401,
-                    "message": "unauthorized"
-                    }), 401
+#     @app.route('/actors/<int:actor_id>', methods=['PATCH'])
+#     @requires_auth('edit:actor')
+#     def edit_actor(payload, actor_id):
+#         body = request.get_json()
+
+#         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+#         if actor is None:
+#             abort(404)
+
+#         if 'name' in body:
+#             actor.name = body.get('name')
+
+#         if 'age' in body:
+#             actor.age = body.get('age')
+
+#         if 'gender' in body:
+#             actor.gender = body.get('gender')
+
+#         actor.update()
+
+#         actor_list = Actor.query.filter(Actor.id == actor_id).all()
+#         actor = [a.long() for a in actor_list]
+
+#         return jsonify({
+#             'success': True,
+#             'actors': actor
+#         })
+
+#     @app.route('/movies/<int:movie_id>', methods=['DELETE'])
+#     @requires_auth('delete:movie')
+#     def delete_movie(payload, movie_id):
+#         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+
+#         if movie is None:
+#             abort(404)
+
+#         movie.delete()
+
+#         return jsonify({
+#             'success': True,
+#             'delete': movie_id,
+#         })
+
+#     @app.route('/actors/<int:actor_id>', methods=['DELETE'])
+#     @requires_auth('delete:actor')
+#     def delete_actor(payload, actor_id):
+#         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+#         if actor is None:
+#             abort(404)
+
+#         actor.delete()
+
+#         return jsonify({
+#             'success': True,
+#             'delete': actor_id,
+#         })
+
+#     ## Error Handling
+
+#     @app.errorhandler(422)
+#     def unprocessable(error):
+#         return jsonify({
+#                         "success": False, 
+#                         "error": 422,
+#                         "message": "unprocessable"
+#                         }), 422
+
+#     @app.errorhandler(404)
+#     def resource_not_found(error):
+#         return jsonify({
+#                         "success": False, 
+#                         "error": 404,
+#                         "message": "resource not found"
+#                         }), 404
+
+#     @app.errorhandler(400)
+#     def not_found(error):
+#         return jsonify({
+#                         "success": False, 
+#                         "error": 400,
+#                         "message": "bad request"
+#                         }), 400
+
+#     @app.errorhandler(AuthError)
+#     def unauthorized(error):
+#         return jsonify({
+#                         "success": False, 
+#                         "error": 401,
+#                         "message": "unauthorized"
+#                         }), 401
+
+#     return app

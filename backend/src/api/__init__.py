@@ -23,7 +23,6 @@ def create_app(test_config=None):
     @app.route('/movies')
     @requires_auth('get:movies')
     def retrieve_movies(payload):
-    # def retrieve_movies():
         selection = Movie.query.order_by(Movie.id).all()
 
         if len(selection) == 0:

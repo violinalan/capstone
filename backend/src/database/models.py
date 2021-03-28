@@ -6,7 +6,6 @@ import json
 # database_name = "capstone"
 # database_path = "postgresql://{}/{}".format('alan:vocisuj3@localhost:5432', database_name)
 database_path = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
-# SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
 
 db = SQLAlchemy()
 
